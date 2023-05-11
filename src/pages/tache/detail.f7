@@ -1,0 +1,81 @@
+<template>
+  <div class="page" data-name="type-list">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Detail de la tâche</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Nom ${$f7route.params.idTache}</div>
+      <div class="block">
+        <p id="nom"></p>
+      </div>
+      <div class="block-title">Description</div>
+      <div class="block">
+        <p id="description"></p>
+      </div>
+      <div class="block-title">Niveau</div>
+      <div class="block">
+        <p id="niveau"></p>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="button col"><a href="/formModifTache/${$f7route.params.idTache}">MODIFIER</a></button>
+          <button class="button col" id="delete-task-button">SUPPRIMER</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  export default (props, { $, $f7, $on, $f7router, $f7route }) => {
+    $on('pageInit', () => {
+      // Load the list data from the API
+      $f7.request.json('http://localhost/STSAPI/get/taches.php', (data) => {
+        //console.log('Success:', data);
+        data.forEach(item => {
+          if (item.id_tache == $f7route.params.idTache) {
+            $('#nom').text(item.nom);
+            $('#description').text(item.description);
+            $('#niveau').text(item.niveau);
+          }
+        });
+      }, (xhr, status) => {
+        console.error('Error:', status);
+      });
+
+      $('#delete-task-button').on('click', () => {
+        $f7.dialog.confirm('Etes-vous sûr de supprimer cette tâche?', 'Supprimer la tâche', () => {
+          const idTache = $f7route.params.idTache;
+          const url = `http://localhost/STSAPI/supp/deleteTache.php?idTache=${idTache}`;
+          const formData = {
+            // add any additional form data you need here
+          };
+
+          $f7.request.json(url, formData, function (data) {
+            if (data == "1") {
+              $f7.dialog.alert('Tâche supprimée!');
+              $f7router.navigate('/tache/'+$f7route.params.idListe+'/'+$f7route.params.idType);
+            } else {
+              $f7.dialog.alert('Erreur lors de la suppression de la tâche!');
+              $f7router.navigate('/tache/' + $f7route.params.idListe + '/' + $f7route.params.idType);
+            }
+          }, function (xhr, status) {
+            console.error(xhr);
+          });
+        });
+      });
+
+
+    });
+
+    return $render;
+  };
+</script>

@@ -1,0 +1,19 @@
+{
+  "cwd": "/Applications/XAMPP/xamppfiles/htdocs/ToDoList",
+  "type": [
+    "pwa"
+  ],
+  "name": "ToDoListApp",
+  "framework": "core",
+  "template": "split-view",
+  "bundler": "vite",
+  "cssPreProcessor": "less",
+  "theming": {
+    "customColor": true,
+    "color": "#b13e54",
+    "darkTheme": false,
+    "iconFonts": true,
+    "fillBars": false
+  },
+  "customBuild": false
+}

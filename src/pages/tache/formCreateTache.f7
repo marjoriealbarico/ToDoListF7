@@ -1,0 +1,99 @@
+<template>
+  <div class="page" data-name="form">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Form : Creation d'une nouvelle tâche ${$f7route.params.idListe}/${$f7route.params.idType}</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Création d'une nouvelle tâche</div>
+      <div class="list no-hairlines-md">
+        <ul>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Nom</div>
+                <div class="item-input-wrap">
+                  <input type="text" placeholder="Nom de la tâche..." id="nom-input"/>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Description</div>
+                <div class="item-input-wrap">
+                  <input type="text" placeholder="Description..." id="description-input"/>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Niveau</div>
+                <div class="item-input-wrap">
+                  <input type="number" placeholder="Niveau (entre 1 et 5)..." min="1" max="5" name="niveau" id="niveau-input" required/>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="col button button-fill open-alert">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  
+  <script>
+    export default (props, { $, $f7, $on, $f7router, $f7route }) => {
+      $on('pageInit', () => {
+        const refType = $f7route.params.idType;
+        const refListe = $f7route.params.idListe;
+  
+        // Alert
+        $('.open-alert').on('click', function () {
+          const nom = $('#nom-input').val();
+          const description = $('#description-input').val();
+          const niveau = $('#niveau-input').val();
+  
+          $f7.request.post('http://localhost/STSAPI/ajout/createTache.php', {
+              refType: refType,
+              refListe: refListe,
+              nom: nom,
+              description: description,
+              niveau: niveau
+            })
+            .then(response => { 
+              const data = JSON.parse(response.data);
+              //console.log(data);
+              if (data === 1) {
+                $f7.dialog.alert('Tâche ajoutée!');
+                $f7router.navigate('/tache/'+refListe+'/'+refType);
+              } else {
+                $f7.dialog.alert('Erreur lors de l\'ajout de la tâche!');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+  
+        });
+      });
+  
+      return $render;
+    };
+  </script>
+  

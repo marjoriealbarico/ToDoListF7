@@ -1,0 +1,173 @@
+<template>
+  <div class="page" data-name="type-list">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title" id="myTitleDiv">La liste des types de </div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Détails de cette liste</div>
+      <div class="block" id="listedetails">
+        <p></p>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="button col"><a href="/formModifListe/${$f7route.params.idListe}">MODIFIER</a></button>
+          <button class="button col" id="delete-task-button">SUPPRIMER</button>
+        </div>
+      </div>
+      <div class="list">
+        <ul>
+          <li>
+            <a href="/formType/${$f7route.params.idListe}" class="item-content item-link">
+              <div class="item-inner">
+                <div class="item-title">Créer un nouveau type des tâches</div>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="block-title">Les types de tâches de cette liste:</div>
+      <div class="list links-list">
+        <ul id="typelist">
+        </ul>
+      </div>
+      <div class="block-title">Les autres types qui n'ont pas de tâches:</div>
+      <div class="list links-list">
+        <ul id="typelistnotaches">
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  export default (props, { $onMounted, $f7, $f7route, $f7router }) => {
+    $onMounted(() => {
+      // Fetch the types of the list from the API
+      $f7.request.json(`http://localhost/STSAPI/get/types.php`)
+        .then(function (res) {
+          //console.log(res.data);
+
+          // Get the UL element within the "list" div
+          const ul = document.querySelector("#typelist");
+
+          // Initialize an empty array to store unique type names
+          let typeNames = [];
+
+          res.data.forEach((object) => {
+            if (object.type_nom != null && object.ref_liste == $f7route.params.idListe) {
+
+              // Check if the type name is already in the array
+              if (!typeNames.includes(object.type_nom)) {
+
+                // Add the type name to the array
+                typeNames.push(object.type_nom);
+
+                // Create a new LI element for the object
+                const li = document.createElement("li");
+
+                // Create a new A element for the object
+                const a = document.createElement("a");
+
+                a.href = `/tache/${object.ref_liste}/${object.ref_type}`;
+
+                // Create a new text node for the object's "nom" property
+                const nomText = document.createTextNode(object.type_nom);
+
+                // Append the text node to the A element
+                a.appendChild(nomText);
+
+                // Append the A element to the LI element
+                li.appendChild(a);
+
+                // Append the LI element to the UL element within the "list" div
+                ul.appendChild(li);
+              }
+            }
+          });
+
+        });
+      $f7.request.json(`http://localhost/STSAPI/get/listes.php`)
+        .then(function (res) {
+          //console.log(res.data);
+
+          if ($f7route.params.idListe) {
+            const obj = res.data.find(item => item.id_liste === $f7route.params.idListe);
+            if (obj) {
+              document.querySelector("#listedetails").innerHTML = `<p>${obj.description}</p>`;
+              document.querySelector("#myTitleDiv").innerHTML += obj.nom;
+            } else {
+              console.error("Object not found with matching idListe parameter");
+            }
+          } else {
+            console.error("Invalid idListe parameter");
+          }
+
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+
+    });
+
+    $f7.request.json(`http://localhost/STSAPI/get/typesSansTaches.php`)
+      .then(function (res) {
+        //console.log(res.data);
+        // Loop through each object in the JSON response
+        res.data.forEach((type) => {
+          // Get the UL element within the "typelistnotaches" div
+          const ulNotAches = document.querySelector("#typelistnotaches");
+
+          // Create a new LI element for the object
+          const li = document.createElement("li");
+
+          // Create a new A element for the object
+          const a = document.createElement("a");
+          a.href = `/tache/${$f7route.params.idListe}/${type.id_type}`;
+
+          // Create a new text node for the object's "nom" property
+          const nomText = document.createTextNode(type.nom);
+
+          // Append the text node to the A element
+          a.appendChild(nomText);
+
+          // Append the A element to the LI element
+          li.appendChild(a);
+
+          // Append the LI element to the UL element within the "typelistnotaches" div
+          ulNotAches.appendChild(li);
+        });
+        $('#delete-task-button').on('click', () => {
+          $f7.dialog.confirm('Etes-vous sûr de supprimer cette liste ?', 'Supprimer la liste', () => {
+            const idListe = $f7route.params.idListe;
+            console.log(`http://localhost/STSAPI/supp/deleteListe.php?idListe=${idListe}`);
+            $f7.request.get(`http://localhost/STSAPI/supp/deleteListe.php?idListe=${idListe}`)
+              .then(data => {
+                console.log(data);
+                if (data == idListe) {
+                  $f7.dialog.alert('Liste supprimée!');
+                  $f7router.back();
+                } else {
+                  $f7.dialog.alert('Erreur lors de la suppression de la liste!');
+                  $f7router.back();
+                }
+              })
+              .catch(error => {
+                console.error(error);
+              });
+          });
+        });
+
+      });
+
+    return $render;
+  };
+</script>

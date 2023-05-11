@@ -1,0 +1,124 @@
+<template>
+  <div class="page" data-name="form">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Form</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Création d'un nouveau type de la liste</div>
+      <div class="list no-hairlines-md">
+        <ul>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Nom</div>
+                <div class="item-input-wrap">
+                  <input type="text" placeholder="Nom du type..." id="nom-input" required />
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Code couleur</div>
+                <div class="item-input-wrap input-dropdown-wrap">
+                  <select placeholder="Please choose..." id="couleur-input">
+                    <option value="Orange">Orange</option>
+                    <option value="Red">Red</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Yellow">Yellow</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Type parent</div>
+                <div class="item-input-wrap input-dropdown-wrap">
+                  <select name="type_parent" placeholder="Please choose..." id="type_parent-input">
+                    <!-- options will be added dynamically via JavaScript -->
+                  </select>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          </li>
+        </ul>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="col button button-fill open-alert">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  export default (props, { $, $f7, $on, $f7router, $f7route }) => {
+    $on('pageInit', () => {
+
+      // Fetch the types from the API endpoint
+      $f7.request.get('http://localhost/STSAPI/get/allTypes.php')
+        .then(response => {
+          const data = JSON.parse(response.data);
+          //console.log(data);
+          // Get the select element and populate it with the types
+          const select = $('select[name="type_parent"]');
+          select.append(`<option value=0>Pas de type parent...</option>`);
+          data.forEach(type => {
+            if (type.type_nom !== null) {
+              select.append(`<option value=${type.id_type}>${type.nom}</option>`);
+            }
+          });
+        });
+
+
+      $('.open-alert').on('click', function () {
+        // Get the form input values
+        const nom = $('#nom-input').val();
+        const couleur = $('#couleur-input').val();
+        const ref_type_parent = $('#type_parent-input').val();
+
+        //console.log('nom:', nom);
+        //console.log('couleur:', couleur);
+        //console.log('ref_type_parent:', ref_type_parent);
+
+        $f7.request.post('http://localhost/STSAPI/ajout/createType.php', {
+          nom: nom,
+          couleur: couleur,
+          ref_type_parent: ref_type_parent
+        })
+        .then(response => {
+          const data = JSON.parse(response.data);
+            //console.log("DATA:" + data);
+            if (data == "1") {
+              $f7.dialog.alert('Type ajouté!');
+              $f7router.navigate('/type/'+$f7route.params.idListe);
+            } else {
+              $f7.dialog.alert('Erreur lors de l\'ajout du type!');
+            }
+
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+
+      });
+    });
+
+    return $render;
+  };
+</script>

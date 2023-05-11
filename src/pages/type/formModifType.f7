@@ -1,0 +1,120 @@
+<template>
+  <div class="page" data-name="form">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Form</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Modification de type ${$f7route.params.idType}</div>
+      <div class="list no-hairlines-md">
+        <ul>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Nom</div>
+                <div class="item-input-wrap">
+                  <input type="text" id="nom-input" required />
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Code couleur</div>
+                <div class="item-input-wrap input-dropdown-wrap">
+                  <select placeholder="Please choose..." id="couleur-input">
+                    <option value="Orange">Orange</option>
+                    <option value="Red">Red</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Yellow">Yellow</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="col button button-fill open-alert" data-id="${$f7route.params.idType}">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  export default (props, { $, $f7, $on, $f7router, $f7route }) => {
+    $on('pageInit', () => {
+      // Load the list data from the API
+      $f7.request.get('http://localhost/STSAPI/get/allTypes.php')
+        .then(response => {
+          const data = JSON.parse(response.data);
+          const select = $('select[name="type_parent"]');
+          select.append(`<option value=0>Pas de type parent...</option>`);
+          data.forEach(item => {
+            if (item.id_type == $f7route.params.idType) {
+              $('#nom-input').val(item.nom);
+              $('#couleur-input').val(item.couleur);
+            }
+            if (item.type_nom !== null) {
+              select.append(`<option value=${item.id_type}>${item.nom}</option>`);
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
+      // Alert
+      $('.open-alert').on('click', function () {
+        // Get the form input values
+        const nom = $('#nom-input').val();
+        const couleur = $('#couleur-input').val();
+        //const ref_type_parent = $('#type_parent-input').val();
+        const idType = $(this).data('id');
+
+        //console.log('idType:', idType);
+        //console.log('nom:', nom);
+        //console.log('couleur:', couleur);
+        //console.log('ref type parent:', ref_type_parent);
+
+        $f7.request.post('http://localhost/STSAPI/modif/modifType.php', {
+          idType: idType,
+          nom: nom,
+          couleur: couleur,
+          //ref_type_parent : ref_type_parent
+        })
+          .then(response => {
+            const data = JSON.parse(response.data);
+            if (data == "1") {
+              //console.log(data);
+              $f7.dialog.alert('Type modifié!');
+              $f7router.navigate('/type/'+$f7route.params.idListe);
+            } else {
+              $f7.dialog.alert('Erreur lors de la modification du type!');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      });
+
+      // Listen for the pageAfterBack event
+      $f7.on('pageAfterBack', () => {
+        // Reload the current page
+        $f7router.reloadPage();
+      });
+    });
+
+    return $render;
+  };
+</script>

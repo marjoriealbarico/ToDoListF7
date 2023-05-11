@@ -1,0 +1,119 @@
+<template>
+  <div class="page" data-name="form">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Form</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Modification de la tâche ${$f7route.params.idTache}</div>
+      <div class="list no-hairlines-md">
+        <ul>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Nom</div>
+                <div class="item-input-wrap">
+                  <input type="text" id="nom-input" />
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Description</div>
+                <div class="item-input-wrap">
+                  <input type="text" id="description-input" />
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Niveau (entre 1 et 5)</div>
+                <div class="item-input-wrap">
+                  <input type="number" min="1" max="5" name="niveau" id="niveau-input" />
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="col button button-fill open-alert">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  export default (props, { $, $f7, $on, $f7router, $f7route }) => {
+    $on('pageInit', () => {
+      // Load the list data from the API
+      fetch('http://localhost/STSAPI/get/taches.php')
+        .then(response => response.json())
+        .then(data => {
+          //console.log('Success:', data);
+          data.forEach(item => {
+            if (item.id_tache == $f7route.params.idTache) {
+              $('#nom-input').val(item.nom);
+              $('#description-input').val(item.description);
+              $('#niveau-input').val(item.niveau);
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
+      $('.open-alert').on('click', function () {
+
+        const idTache = $f7route.params.idTache
+        const nom = $('#nom-input').val()
+        const description = $('#description-input').val()
+        const niveau = $('#niveau-input').val()
+
+        //console.log(idTache);
+        //console.log(nom);
+        //console.log(description);
+        //console.log(niveau);
+
+        fetch('http://localhost/STSAPI/modif/modifTache.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            'idTache': idTache,
+            'nom': nom,
+            'description': description,
+            'niveau': niveau
+          })
+        })
+          .then(response => response.text())
+          .then(data => {
+            if(data=="1"){
+              //console.log('Success:', data);
+              $f7.dialog.alert('Tâche modifiée!');
+              $f7router.navigate('/detail/'+$f7route.params.idTache);
+            }else{
+              $f7.dialog.alert('Erreur lors de la modification de la tâche!');
+            }
+            
+          });
+      })
+    });
+
+    return $render;
+  };
+</script>

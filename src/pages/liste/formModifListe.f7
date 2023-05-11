@@ -1,0 +1,109 @@
+<template>
+  <div class="page" data-name="form">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Form</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Modification cette liste ${$f7route.params.idListe}</div>
+      <div class="list no-hairlines-md">
+        <ul>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Nom</div>
+                <div class="item-input-wrap">
+                  <input type="text" id="nom-input" />
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Description</div>
+                <div class="item-input-wrap">
+                  <input type="text" id="description-input" />
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="col button button-fill open-alert" data-id="${$f7route.params.idListe}">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  export default (props, { $, $f7, $on, $f7router, $f7route }) => {
+    $on('pageInit', () => {
+      // Load the list data from the API
+      $f7.request.get('http://localhost/STSAPI/get/listes.php')
+        .then(response => {
+          const data = JSON.parse(response.data);
+          console.log('Success:', data);
+          if (Array.isArray(data)) {
+            data.forEach(item => {
+              if (item && item.description) {
+                if (item.id_liste == $f7route.params.idListe) {
+                  $('#nom-input').val(item.nom);
+                  $('#description-input').val(item.description);
+                }
+              }
+            });
+          } else {
+            console.error('Error: Expected an array but got', typeof data);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
+
+
+
+      $('.open-alert').on('click', function () {
+        // Get the form input values
+        const nom = $('#nom-input').val();
+        const description = $('#description-input').val();
+        const idListe = $(this).data('id');
+
+        //console.log('nom:', nom);
+        //console.log('idListe:', idListe);
+        //console.log('description:', description);
+
+        $f7.request.post('http://localhost/STSAPI/modif/modifListe.php', {
+          nom: nom,
+          idListe: idListe,
+          description: description
+        })
+          .then(data => {
+            if (data.data == "1") {
+              $f7.dialog.alert('Liste modifiée!');
+              $f7router.navigate('/');
+            } else {
+              $f7.dialog.alert('Erreur lors de la modification de la liste!');
+            }
+
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      });
+    });
+
+    return $render;
+  };
+</script>

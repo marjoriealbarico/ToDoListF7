@@ -1,0 +1,71 @@
+<template>
+  <div class="page" data-name="home">
+    <!-- Top Navbar -->
+    <div class="navbar navbar-large">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner">
+        <div class="title-large">
+          <div class="title-large-text">To Do List</div>
+        </div>
+      </div>
+    </div>
+    <!-- Scrollable page content-->
+    <div class="page-content">
+      <div class="list">
+        <ul>
+          <li>
+            <a href="/formListe/" class="item-content item-link">
+              <div class="item-inner">
+                <div class="item-title">Créer une nouvelle liste</div>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="list links-list">
+        <ul id="leslistes">
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  export default (props, { $onMounted, $f7, $f7router, $on }) => {
+    $onMounted(() => {
+      $f7.request.json('http://localhost/STSAPI/get/listes.php')
+        .then(function (res) {
+          //console.log(res.data);
+  
+          // Get the UL element within the "list" div
+          const ul = document.querySelector("#leslistes");
+  
+          // Loop through each object in the JSON response
+          res.data.forEach((object) => {
+            // Create a new LI element for the object
+            const li = document.createElement("li");
+  
+            // Create a new A element for the object
+            const a = document.createElement("a");
+            a.href = `/type/${object.id_liste}`;
+  
+            // Create a new text node for the object's "nom" property
+            const nomText = document.createTextNode(object.nom);
+  
+            // Append the text node to the A element
+            a.appendChild(nomText);
+  
+            // Append the A element to the LI element
+            li.appendChild(a);
+  
+            // Append the LI element to the UL element within the "list" div
+            ul.appendChild(li);
+          });
+        });
+    });
+
+    
+    return $render;
+  }
+  </script>
+  

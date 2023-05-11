@@ -1,0 +1,89 @@
+<template>
+  <div class="page" data-name="form">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">Back</span>
+          </a>
+        </div>
+        <div class="title">Form : Creation d'une nouvelle liste</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="block-title">Création d'une nouvelle liste</div>
+      <div class="list no-hairlines-md">
+        <ul>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Nom</div>
+                <div class="item-input-wrap">
+                  <input type="text" placeholder="Nom de liste..." />
+                </div>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="item-content item-input">
+              <div class="item-inner">
+                <div class="item-title item-label">Description</div>
+                <input type="text" placeholder="description..." />
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="block block-strong">
+        <div class="row">
+          <button class="col button button-fill open-alert">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<!--script>
+export default (props, { $, $f7, $on, $f7router }) => {
+  $on('pageInit', () => {
+      // Alert
+      $('.open-alert').on('click', function () {
+        $f7.dialog.alert('Liste ajouté!');
+        $f7router.back();
+      });
+    })
+
+    return $render;
+  };
+
+</script-->
+<script>
+  export default (props, { $, $f7, $on, $f7router }) => {
+    $on('pageInit', () => {
+      // Alert
+      $('.open-alert').on('click', function () {
+        // Get the form input values
+        const nom = $('input[placeholder="Nom de liste..."]').val();
+        const description = $('input[placeholder="description..."]').val();
+        // Send a POST request to the PHP file
+        $f7.request.post('http://localhost/STSAPI/ajout/createListe.php', {
+          nom: nom,
+          description: description
+        }).then((data) => {
+          console.log(data);
+          if (data.data === "1") {
+            $f7.dialog.alert('Liste ajoutée!');
+            $f7router.navigate('/');
+            //$f7router.back({ animate: true, reloadCurrent: true });
+          } else {
+            $f7.dialog.alert('Erreur lors de l\'ajout de la liste!');
+          }
+        }).catch((error) => {
+          console.error('Error:', error);
+        });
+      });
+    });
+    return $render;
+  };
+</script>
